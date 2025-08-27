@@ -1,0 +1,35 @@
+{
+    "name": "project-router-api",
+    "version": "1.0.0",
+    "description": "Minimal Express skeleton",
+    "type": "module",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "keywords": [
+        "express",
+        "skeleton"
+    ],
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "helmet": "^7.0.0",
+        "morgan": "^1.10.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.34.0",
+        "eslint": "^9.34.0",
+        "eslint-plugin-prettier": "^5.5.4",
+        "globals": "^15.15.0",
+        "nodemon": "^3.0.1",
+        "prettier": "^3.6.2"
+    }
+}
