@@ -3,35 +3,205 @@ import { prisma } from '../lib/prisma.js';
 
 const router = express.Router();
 
+// 공통 유틸: 응답에서 password 숨기기
+function sanitizeStudy(study) {
+    if (!study) return study;
+    const { password, ...rest } = study;
+    return rest;
+}
+
+function parseId(param) {
+    const id = Number(param);
+    return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 // POST /studies
 router.post('/', async (req, res, next) => {
     try {
         const { nickname, name, description, background, password } = req.body;
 
         if (!nickname || !name || !background || !password) {
-            return res
-                .status(400)
-                .json({ error: 'nickname, name, background, password are required' });
+            return res.status(400).json({
+                error: 'nickname, name, background, password are necessary',
+            });
         }
 
         const study = await prisma.study.create({
-            data: { nickname, name, description, background, password },
+            data: {
+                nickname,
+                name,
+                description,
+                background,
+                password,
+            },
         });
 
-        return res.status(201).json(study);
+        return res.status(201).json(sanitizeStudy(study));
     } catch (err) {
         // Unique 확인
         if (err.code === 'P2002') {
-            return res.status(409).json({ error: 'Unique constraint violation', meta: err.meta });
+            return res.status(409).json({
+                error: 'Unique constraint violation',
+                meta: err.meta,
+            });
         }
         return next(err);
     }
 });
 
 // GET /studies
-router.get('/', async (_req, res) => {
-    const list = await prisma.study.findMany({ orderBy: { id: 'desc' } });
-    res.json(list);
+router.get('/', async (req, res, next) => {
+    try {
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 20));
+        const search = (req.query.search || '').toString().trim();
+
+        const where = search
+            ? {
+                  OR: [
+                      { name: { contains: search, mode: 'insensitive' } },
+                      { nickname: { contains: search, mode: 'insensitive' } },
+                  ],
+              }
+            : undefined;
+
+        const [total, items] = await Promise.all([
+            prisma.study.count({ where }),
+            prisma.study.findMany({
+                where,
+                orderBy: { id: 'desc' },
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+            }),
+        ]);
+
+        res.json({
+            items: items.map(sanitizeStudy),
+            meta: {
+                total,
+                page,
+                pageSize,
+                totalPages: Math.max(1, Math.ceil(total / pageSize)),
+            },
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// GET /studies/:id - 상세
+router.get('/:id', async (req, res, next) => {
+    try {
+        const id = parseId(req.params.id);
+        if (!id)
+            return res.status(400).json({
+                error: 'Invalid id',
+            });
+
+        const study = await prisma.study.findUnique({
+            where: { id },
+        });
+        if (!study)
+            return res.status(404).json({
+                error: 'Study not found',
+            });
+
+        return res.json(sanitizeStudy(study));
+    } catch (err) {
+        next(err);
+    }
+});
+
+// PATCH /studies/:id - 수정 (비밀번호 필요)
+router.patch('/:id', async (req, res, next) => {
+    try {
+        const id = parseId(req.params.id);
+        if (!id)
+            return res.status(400).json({
+                error: 'Invalid id',
+            });
+
+        const { password, nickname, name, description, background, newPassword } = req.body || {};
+        if (!password)
+            return res.status(400).json({
+                error: 'password is required',
+            });
+
+        const existing = await prisma.study.findUnique({
+            where: { id },
+        });
+        if (!existing)
+            return res.status(404).json({
+                error: 'Study not found',
+            });
+        if (existing.password !== password)
+            return res.status(403).json({
+                error: 'Invalid password',
+            });
+
+        const data = {};
+        if (typeof nickname === 'string') data.nickname = nickname;
+        if (typeof name === 'string') data.name = name;
+        if (typeof description === 'string') data.description = description;
+        if (typeof background === 'string') data.background = background;
+        if (typeof newPassword === 'string' && newPassword.length > 0) data.password = newPassword;
+
+        if (Object.keys(data).length === 0) {
+            return res.status(400).json({
+                error: 'No updatable fields provided',
+            });
+        }
+
+        const updated = await prisma.study.update({
+            where: { id },
+            data,
+        });
+        return res.json(sanitizeStudy(updated));
+    } catch (err) {
+        if (err.code === 'P2002') {
+            return res.status(409).json({
+                error: 'Unique constraint violation',
+                meta: err.meta,
+            });
+        }
+        next(err);
+    }
+});
+
+// DELETE /studies/:id - 삭제 (비밀번호 필요)
+router.delete('/:id', async (req, res, next) => {
+    try {
+        const id = parseId(req.params.id);
+        if (!id)
+            return res.status(400).json({
+                error: 'Invalid id',
+            });
+
+        const { password } = req.body || {};
+        if (!password)
+            return res.status(400).json({
+                error: 'password is required',
+            });
+
+        const existing = await prisma.study.findUnique({
+            where: { id },
+        });
+        if (!existing)
+            return res.status(404).json({
+                error: 'Study not found',
+            });
+        if (existing.password !== password)
+            return res.status(403).json({
+                error: 'Invalid password',
+            });
+
+        await prisma.study.delete({
+            where: { id },
+        });
+        return res.status(204).send();
+    } catch (err) {
+        next(err);
+    }
 });
 
 export default router;
