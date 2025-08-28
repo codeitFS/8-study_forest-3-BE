@@ -1,25 +1,35 @@
-// ESLint Flat Config for Node + ESM
-import js from "@eslint/js";
-import globals from "globals";
-import prettierPlugin from "eslint-plugin-prettier";
+import js from '@eslint/js';
+import globals from 'globals';
+import { FlatCompat } from '@eslint/eslintrc';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const baseDir = path.dirname(fileURLToPath(import.meta.url));
+const compat = new FlatCompat({ baseDirectory: baseDir });
 
 export default [
-    js.configs.recommended,
     {
-        files: ["**/*.js"],
-        ignores: ["node_modules/**", "dist/**", "coverage/**"],
+        ignores: ['node_modules/**', 'dist/**', 'build/**', 'coverage/**'],
+    },
+    js.configs.recommended,
+    ...compat.extends('airbnb-base'),
+    ...compat.extends('prettier'),
+    {
+        files: ['**/*.js'],
         languageOptions: {
-            ecmaVersion: "latest",
-            sourceType: "module",
-            globals: {
-                ...globals.node,
-            },
-        },
-        plugins: {
-            prettier: prettierPlugin,
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            globals: { ...globals.node },
         },
         rules: {
-            "prettier/prettier": "warn",
+            'no-console': 'warn',
+            'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+        },
+    },
+    {
+        files: ['eslint.config.js'],
+        rules: {
+            'import/no-extraneous-dependencies': 'off',
         },
     },
 ];
