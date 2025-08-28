@@ -1,0 +1,101 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Study {
+    id          Int      @id @default(autoincrement()) @map("study_id")
+    nickname    String
+    name        String
+    description String?
+    background  String
+    password    String
+    points      Int      @default(0)
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @updatedAt @map("updated_at")
+
+    // relations
+    habits        Habit[] // 1:N
+    habitRecord   HabitRecord? // 1:1
+    focusSession  FocusSession? // 1:1
+    studyEmojis   StudyEmoji[] // 1:N
+
+    @@map("studies")
+}
+
+model Habit {
+    id          Int       @id @default(autoincrement()) @map("habit_id")
+    studyId     Int       @map("study_id")
+    name        String
+    weeklyClear String    @default("0|0|0|0|0|0|0")   @map("weekly_clear")
+    createdAt   DateTime  @default(now()) @map("created_at")
+    updatedAt   DateTime  @updatedAt @map("updated_at")
+
+    // relations
+    study   Study         @relation(fields: [studyId], references: [id], onDelete: Cascade)
+    records HabitRecord[] // 1:N
+
+    @@index([studyId])
+    @@map("habits")
+}
+
+model HabitRecord {
+    id        Int      @id @default(autoincrement()) @map("record_id")
+    studyId   Int      @unique @map("study_id") 
+    habitId   Int      @map("habit_id")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    // relations
+    study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+    habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+    @@index([habitId])
+    @@index([studyId])
+    @@map("habit_records")
+}
+
+model FocusSession {
+    id        Int      @id @default(autoincrement()) @map("focus_id")
+    studyId   Int      @unique @map("study_id")
+    duration  Int      @default(0)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+    @@index([studyId])
+    @@map("focus_sessions")
+}
+
+model Emoji {
+    id        Int      @id @default(autoincrement()) @map("emoji_id")
+    emoji     String
+    createdAt DateTime @default(now()) @map("created_at")
+
+    studyEmojis StudyEmoji[] // 1:N
+
+    @@map("emojis")
+}
+
+model StudyEmoji {
+    id        Int      @id @default(autoincrement()) @map("study_emoji_id")
+    studyId   Int      @map("study_id")
+    emojiId   Int      @map("emoji_id")
+    count     Int      @default(0)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+    emoji Emoji @relation(fields: [emojiId], references: [id], onDelete: Cascade)
+
+    @@unique([studyId, emojiId]) // 스터디+이모지 중복 방지
+    @@index([studyId])
+    @@index([emojiId])
+    @@map("study_emoji")
+}

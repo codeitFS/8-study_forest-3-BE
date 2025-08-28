@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import pkg from 'pg';
+import studiesRouter from './src/routes/studies.js';
 
 dotenv.config();
 
@@ -26,6 +27,9 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
+
+// STUDY 라우트(테스트용)
+app.use('/studies', studiesRouter);
 
 // 404 처리
 app.use((req, res) => {
