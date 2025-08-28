@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import pkg from "pg";
 
 dotenv.config();
 
@@ -42,5 +43,22 @@ app.listen(PORT, () => {
         `Server running at http://localhost:${PORT} (env: ${process.env.NODE_ENV || "development"})`,
     );
 });
+
+const { Pool } = pkg;
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+});
+
+// 앱 시작 시 간단한 쿼리로 확인
+(async () => {
+    try {
+        const { rows } = await pool.query("select now()");
+        console.log("DB connected. now():", rows[0].now);
+    } catch (e) {
+        console.error("DB connect error:", e.message);
+    }
+})();
 
 export default app;
