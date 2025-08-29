@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import pkg from 'pg';
 import studiesRouter from './src/routes/studies.js';
+import habitsRouter from './src/routes/habits.js';
 
 dotenv.config();
 
@@ -30,6 +31,9 @@ app.get('/health', (req, res) => {
 
 // STUDY 라우트(테스트용)
 app.use('/studies', studiesRouter);
+
+// habits 라우트(테스트용)
+app.use('/', habitsRouter);
 
 // 404 처리
 app.use((req, res) => {
