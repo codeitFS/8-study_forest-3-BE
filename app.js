@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import pkg from 'pg';
 import studiesRouter from './src/routes/studies.js';
 import habitsRouter from './src/routes/habits.js';
+import focusSessionsRouter from './src/routes/focusSessions.js';
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ app.use('/studies', studiesRouter);
 
 // habits 라우트(테스트용)
 app.use('/', habitsRouter);
+
+// focus sessions 라우트(테스트용)
+app.use('/', focusSessionsRouter);
 
 // 404 처리
 app.use((req, res) => {
