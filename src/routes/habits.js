@@ -1,45 +1,15 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
+import { parseId, verifyStudyPassword } from '../lib/utils.js';
 
 const router = express.Router();
 
-function parseId(param) {
-    const id = Number(param);
-    return Number.isInteger(id) && id > 0 ? id : null;
-}
+// verifyStudyPassword는 공통 유틸 사용
 
 function isValidWeeklyClear(value) {
     if (typeof value !== 'string') return false;
     // format: 0|0|0|0|0|0|0 (7 digits 0/1 -> 0: false, 1: true)
     return /^(0|1)(\|(0|1)){6}$/.test(value);
-}
-
-async function verifyStudyPassword(studyId, password) {
-    if (!password)
-        return {
-            ok: false,
-            code: 400,
-            message: 'password is required',
-        };
-    const study = await prisma.study.findUnique({
-        where: { id: studyId },
-        select: { id: true, password: true },
-    });
-    if (!study)
-        return {
-            ok: false,
-            code: 404,
-            message: 'Study not found',
-        };
-    if (study.password !== password)
-        return {
-            ok: false,
-            code: 403,
-            message: 'Invalid password',
-        };
-    return {
-        ok: true,
-    };
 }
 
 // POST /studies/:studyId/habits - 습관 생성 (스터디 비밀번호 필요)
