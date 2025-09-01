@@ -1,12 +1,13 @@
-import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import pkg from 'pg';
-import studiesRouter from './src/routes/studies.js';
-import habitsRouter from './src/routes/habits.js';
 import focusSessionsRouter from './src/routes/focusSessions.js';
+import habitsRouter from './src/routes/habits.js';
+import studiesRouter from './src/routes/studies.js';
+import { startScheduler } from './src/lib/scheduler.js';
 
 dotenv.config();
 
@@ -30,40 +31,35 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// STUDY 라우트(테스트용)
-app.use('/studies', studiesRouter);
+// 라우터
+app.use('/', studiesRouter); // /studies ...
+app.use('/', habitsRouter); // /studies/:studyId/habits
+app.use('/', focusSessionsRouter); // /studies/:studyId/focus_session
 
-// habits 라우트(테스트용)
-app.use('/', habitsRouter);
-
-// focus sessions 라우트(테스트용)
-app.use('/', focusSessionsRouter);
-
-// 404 처리
+// 에러 핸들러
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
-
-// 에러 핸들러
 app.use((err, req, res, _next) => {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
 });
 
+// server 가동 및 CRON 스케줄러 시작(14분마다 ping)
 app.listen(PORT, () => {
     console.log(
         `Server running at http://localhost:${PORT} (env: ${process.env.NODE_ENV || 'development'})`,
     );
+    startScheduler();
 });
 
 const { Pool } = pkg;
-
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
 });
 
-// 앱 시작 시 간단한 쿼리로 확인
+// DB 확인
 (async () => {
     try {
         const { rows } = await pool.query('select now()');

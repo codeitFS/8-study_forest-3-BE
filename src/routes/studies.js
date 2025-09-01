@@ -1,18 +1,16 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
+import { parseId, verifyStudyPassword } from '../lib/utils.js';
 
 const router = express.Router();
 
-// 공통 유틸: 응답에서 password 숨기기
+// parseId, verifyStudyPassword 는 utils.js 사용
+
+// 응답에서 password 숨기기
 function sanitizeStudy(study) {
     if (!study) return study;
     const { password, ...rest } = study;
     return rest;
-}
-
-function parseId(param) {
-    const id = Number(param);
-    return Number.isInteger(id) && id > 0 ? id : null;
 }
 
 // POST /studies
@@ -122,21 +120,10 @@ router.patch('/:id', async (req, res, next) => {
             });
 
         const { password, nickname, name, description, background, newPassword } = req.body || {};
-        if (!password)
-            return res.status(400).json({
-                error: 'password is required',
-            });
-
-        const existing = await prisma.study.findUnique({
-            where: { id },
-        });
-        if (!existing)
-            return res.status(404).json({
-                error: 'Study not found',
-            });
-        if (existing.password !== password)
-            return res.status(403).json({
-                error: 'Invalid password',
+        const auth = await verifyStudyPassword(id, password);
+        if (!auth.ok)
+            return res.status(auth.code).json({
+                error: auth.message,
             });
 
         const data = {};
@@ -178,21 +165,10 @@ router.delete('/:id', async (req, res, next) => {
             });
 
         const { password } = req.body || {};
-        if (!password)
-            return res.status(400).json({
-                error: 'password is required',
-            });
-
-        const existing = await prisma.study.findUnique({
-            where: { id },
-        });
-        if (!existing)
-            return res.status(404).json({
-                error: 'Study not found',
-            });
-        if (existing.password !== password)
-            return res.status(403).json({
-                error: 'Invalid password',
+        const auth = await verifyStudyPassword(id, password);
+        if (!auth.ok)
+            return res.status(auth.code).json({
+                error: auth.message,
             });
 
         await prisma.study.delete({

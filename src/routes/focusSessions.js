@@ -1,45 +1,10 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
+import { parseId, verifyStudyPassword } from '../lib/utils.js';
 
 const router = express.Router();
 
-function parseId(param) {
-    const id = Number(param);
-    return Number.isInteger(id) && id > 0 ? id : null;
-}
-
-async function verifyStudyPassword(studyId, password) {
-    if (!password)
-        return {
-            ok: false,
-            code: 400,
-            message: 'password is required',
-        };
-    const study = await prisma.study.findUnique({
-        where: {
-            id: studyId,
-        },
-        select: {
-            id: true,
-            password: true,
-        },
-    });
-    if (!study)
-        return {
-            ok: false,
-            code: 404,
-            message: 'Study not found',
-        };
-    if (study.password !== password)
-        return {
-            ok: false,
-            code: 403,
-            message: 'Invalid password',
-        };
-    return {
-        ok: true,
-    };
-}
+// parseId, verifyStudyPassword는 공통 유틸 사용
 
 // POST /studies/:studyId/focus_session - 생성 (1:1, 존재하면 409)
 router.post('/studies/:studyId/focus_session', async (req, res, next) => {
