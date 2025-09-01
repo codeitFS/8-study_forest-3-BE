@@ -41,8 +41,8 @@ async function verifyStudyPassword(studyId, password) {
     };
 }
 
-// POST /studies/:studyId/focus-session - 생성 (1:1, 존재하면 409)
-router.post('/studies/:studyId/focus-session', async (req, res, next) => {
+// POST /studies/:studyId/focus_session - 생성 (1:1, 존재하면 409)
+router.post('/studies/:studyId/focus_session', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
         if (!studyId)
@@ -82,8 +82,8 @@ router.post('/studies/:studyId/focus-session', async (req, res, next) => {
     }
 });
 
-// GET /studies/:studyId/focus-session - 단건 조회(없으면 404)
-router.get('/studies/:studyId/focus-session', async (req, res, next) => {
+// GET /studies/:studyId/focus_session - 단건 조회(없으면 404)
+router.get('/studies/:studyId/focus_session', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
         if (!studyId)
@@ -103,8 +103,8 @@ router.get('/studies/:studyId/focus-session', async (req, res, next) => {
     }
 });
 
-// PATCH /studies/:studyId/focus-session - 수정 (password 필요)
-router.patch('/studies/:studyId/focus-session', async (req, res, next) => {
+// PATCH /studies/:studyId/focus_session - 수정 (password 필요, duration 직접 설정)
+router.patch('/studies/:studyId/focus_session', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
         if (!studyId)
@@ -112,7 +112,7 @@ router.patch('/studies/:studyId/focus-session', async (req, res, next) => {
                 error: 'Invalid studyId',
             });
 
-        const { password, duration, addDuration } = req.body || {};
+        const { password, duration } = req.body || {};
         const auth = await verifyStudyPassword(studyId, password);
         if (!auth.ok)
             return res.status(auth.code).json({
@@ -127,44 +127,26 @@ router.patch('/studies/:studyId/focus-session', async (req, res, next) => {
                 error: 'FocusSession not found',
             });
 
-        let data = {};
-        if (duration !== undefined) {
-            const d = Number(duration);
-            if (!Number.isInteger(d) || d < 0)
-                return res.status(400).json({
-                    error: 'duration must be a non-negative integer',
-                });
-            data.duration = d;
+        if (duration === undefined) {
+            return res.status(400).json({ error: 'duration is required' });
         }
-        if (addDuration !== undefined) {
-            const delta = Number(addDuration);
-            if (!Number.isInteger(delta))
-                return res.status(400).json({
-                    error: 'addDuration must be an integer',
-                });
-            const nextVal = existing.duration + delta;
-            if (nextVal < 0)
-                return res.status(400).json({
-                    error: 'resulting duration cannot be negative',
-                });
-            data.duration = nextVal;
+        const d = Number(duration);
+        if (!Number.isInteger(d) || d < 0) {
+            return res.status(400).json({ error: 'duration must be a non-negative integer' });
         }
 
-        if (Object.keys(data).length === 0) {
-            return res.status(400).json({
-                error: 'No updatable fields provided',
-            });
-        }
-
-        const updated = await prisma.focusSession.update({ where: { studyId }, data });
+        const updated = await prisma.focusSession.update({
+            where: { studyId },
+            data: { duration: d },
+        });
         return res.json(updated);
     } catch (err) {
         next(err);
     }
 });
 
-// DELETE /studies/:studyId/focus-session - 삭제 (password 필요)
-router.delete('/studies/:studyId/focus-session', async (req, res, next) => {
+// DELETE /studies/:studyId/focus_session - 삭제 (password 필요)
+router.delete('/studies/:studyId/focus_session', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
         if (!studyId)
