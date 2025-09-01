@@ -107,35 +107,27 @@ router.get('/studies/:studyId/habits', async (req, res, next) => {
                 : {}),
         };
 
-        const [total, items] = await Promise.all([
-            prisma.habit.count({
-                where,
-            }),
-            prisma.habit.findMany({
-                where,
-                orderBy: { id: 'desc' },
-                skip: (page - 1) * pageSize,
-                take: pageSize,
-            }),
-        ]);
-
-        res.json({
-            items,
-            meta: {
-                total,
-                page,
-                pageSize,
-                totalPages: Math.max(1, Math.ceil(total / pageSize)),
-            },
+        const items = await prisma.habit.findMany({
+            where,
+            orderBy: { id: 'desc' },
+            skip: (page - 1) * pageSize,
+            take: pageSize,
         });
+
+        res.json(items);
     } catch (err) {
         next(err);
     }
 });
 
-// GET /habits/:id - 습관 상세 조회
-router.get('/habits/:id', async (req, res, next) => {
+// GET /studies/:studyId/habits/:id - 습관 상세 조회
+router.get('/studies/:studyId/habits/:id', async (req, res, next) => {
     try {
+        const studyId = parseId(req.params.studyId);
+        if (!studyId)
+            return res.status(400).json({
+                error: 'Invalid studyId',
+            });
         const id = parseId(req.params.id);
         if (!id)
             return res.status(400).json({
@@ -149,15 +141,21 @@ router.get('/habits/:id', async (req, res, next) => {
             return res.status(404).json({
                 error: 'Habit not found',
             });
+        if (habit.studyId !== studyId)
+            return res.status(404).json({
+                error: 'Habit not found',
+            });
         return res.json(habit);
     } catch (err) {
         next(err);
     }
 });
 
-// PATCH /habits/:id - 습관 수정 (스터디 비밀번호 필요)
-router.patch('/habits/:id', async (req, res, next) => {
+// PATCH /studies/:studyId/habits/:id - 습관 수정 (스터디 비밀번호 필요)
+router.patch('/studies/:studyId/habits/:id', async (req, res, next) => {
     try {
+        const studyId = parseId(req.params.studyId);
+        if (!studyId) return res.status(400).json({ error: 'Invalid studyId' });
         const id = parseId(req.params.id);
         if (!id)
             return res.status(400).json({
@@ -172,8 +170,12 @@ router.patch('/habits/:id', async (req, res, next) => {
             return res.status(404).json({
                 error: 'Habit not found',
             });
+        if (existing.studyId !== studyId)
+            return res.status(404).json({
+                error: 'Habit not found',
+            });
 
-        const auth = await verifyStudyPassword(existing.studyId, password);
+        const auth = await verifyStudyPassword(studyId, password);
         if (!auth.ok)
             return res.status(auth.code).json({
                 error: auth.message,
@@ -201,9 +203,14 @@ router.patch('/habits/:id', async (req, res, next) => {
     }
 });
 
-// DELETE /habits/:id - 습관 삭제 (스터디 비밀번호 필요)
-router.delete('/habits/:id', async (req, res, next) => {
+// DELETE /studies/:studyId/habits/:id - 습관 삭제 (스터디 비밀번호 필요)
+router.delete('/studies/:studyId/habits/:id', async (req, res, next) => {
     try {
+        const studyId = parseId(req.params.studyId);
+        if (!studyId)
+            return res.status(400).json({
+                error: 'Invalid studyId',
+            });
         const id = parseId(req.params.id);
         if (!id)
             return res.status(400).json({
@@ -218,8 +225,12 @@ router.delete('/habits/:id', async (req, res, next) => {
             return res.status(404).json({
                 error: 'Habit not found',
             });
+        if (existing.studyId !== studyId)
+            return res.status(404).json({
+                error: 'Habit not found',
+            });
 
-        const auth = await verifyStudyPassword(existing.studyId, password);
+        const auth = await verifyStudyPassword(studyId, password);
         if (!auth.ok)
             return res.status(auth.code).json({
                 error: auth.message,
