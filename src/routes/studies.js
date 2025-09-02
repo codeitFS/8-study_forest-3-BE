@@ -14,7 +14,7 @@ function sanitizeStudy(study) {
 }
 
 // POST /studies
-router.post('/', async (req, res, next) => {
+router.post('/studies', async (req, res, next) => {
     try {
         const { nickname, name, description, background, password } = req.body;
 
@@ -48,7 +48,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // GET /studies
-router.get('/', async (req, res, next) => {
+router.get('/studies', async (req, res, next) => {
     try {
         const page = Math.max(1, Number(req.query.page) || 1);
         const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 20));
@@ -88,7 +88,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET /studies/:id - 상세
-router.get('/:id', async (req, res, next) => {
+router.get('/studies/:id', async (req, res, next) => {
     try {
         const id = parseId(req.params.id);
         if (!id)
@@ -111,7 +111,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // PATCH /studies/:id - 수정 (비밀번호 필요)
-router.patch('/:id', async (req, res, next) => {
+router.patch('/studies/:id', async (req, res, next) => {
     try {
         const id = parseId(req.params.id);
         if (!id)
@@ -156,7 +156,7 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 // DELETE /studies/:id - 삭제 (비밀번호 필요)
-router.delete('/:id', async (req, res, next) => {
+router.delete('/studies/:id', async (req, res, next) => {
     try {
         const id = parseId(req.params.id);
         if (!id)
