@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
-import { parseId, verifyStudyPassword } from '../lib/utils.js';
+import { parseId, verifyStudyPassword, toHashedPasswordIfNeeded } from '../lib/utils.js';
 
 const router = express.Router();
 
@@ -24,13 +24,14 @@ router.post('/studies', async (req, res, next) => {
             });
         }
 
+        const hashed = await toHashedPasswordIfNeeded(password);
         const study = await prisma.study.create({
             data: {
                 nickname,
                 name,
                 description,
                 background,
-                password,
+                password: hashed,
             },
         });
 
@@ -131,7 +132,9 @@ router.patch('/studies/:id', async (req, res, next) => {
         if (typeof name === 'string') data.name = name;
         if (typeof description === 'string') data.description = description;
         if (typeof background === 'string') data.background = background;
-        if (typeof newPassword === 'string' && newPassword.length > 0) data.password = newPassword;
+        if (typeof newPassword === 'string' && newPassword.length > 0) {
+            data.password = await toHashedPasswordIfNeeded(newPassword);
+        }
 
         if (Object.keys(data).length === 0) {
             return res.status(400).json({
