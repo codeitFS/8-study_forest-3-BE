@@ -7,6 +7,7 @@ import pkg from 'pg';
 import focusSessionsRouter from './src/routes/focusSessions.js';
 import habitsRouter from './src/routes/habits.js';
 import studiesRouter from './src/routes/studies.js';
+import emojisRouter from './src/routes/emojis.js';
 import { startScheduler } from './src/lib/scheduler.js';
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.get('/health', (req, res) => {
 app.use('/', studiesRouter); // /studies ...
 app.use('/', habitsRouter); // /studies/:studyId/habits
 app.use('/', focusSessionsRouter); // /studies/:studyId/focus_session
+app.use('/', emojisRouter); // /emojis, /studies/:studyId/emojis
 
 // 에러 핸들러
 app.use((req, res) => {
