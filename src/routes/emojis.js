@@ -114,6 +114,7 @@ router.get('/emojis/:id', async (req, res, next) => {
     }
 });
 
+
 // DELETE /emojis/:id - 삭제
 router.delete('/emojis/:id', async (req, res, next) => {
     try {
