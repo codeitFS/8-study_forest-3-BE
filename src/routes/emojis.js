@@ -101,6 +101,19 @@ router.get('/emojis', async (req, res, next) => {
     }
 });
 
+// GET /emojis/:id - 상세 조회
+router.get('/emojis/:id', async (req, res, next) => {
+    try {
+        const id = parseId(req.params.id);
+        if (!id) return res.status(400).json({ error: 'Invalid id' });
+        const item = await prisma.emoji.findUnique({ where: { id } });
+        if (!item) return res.status(404).json({ error: 'Emoji not found' });
+        return res.json(item);
+    } catch (err) {
+        next(err);
+    }
+});
+
 // DELETE /emojis/:id - 삭제
 router.delete('/emojis/:id', async (req, res, next) => {
     try {
