@@ -141,7 +141,7 @@ router.get('/emojis/:id', async (req, res, next) => {
 // });
 
 // POST /studies/:studyId/emojis/:emojiId
-// study-emoji count를 +1(이모티콘이 있을 때 이모티콘 창에서 이모티콘를 눌러도 +1이 되도록)
+// study-emoji 연결/count++ (이모티콘이 있을 때 이모티콘 창에서 이모티콘를 눌러도 +1이 되도록)
 router.post('/studies/:studyId/emojis/:emojiId', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
@@ -192,7 +192,7 @@ router.post('/studies/:studyId/emojis/:emojiId', async (req, res, next) => {
     }
 });
 
-// GET /studies/:studyId/emojis - 스터디의 이모지 카운트 목록을 조회한다.
+// GET /studies/:studyId/emojis - 스터디의 이모지 카운트 전체 목록 조회
 router.get('/studies/:studyId/emojis', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
@@ -201,32 +201,27 @@ router.get('/studies/:studyId/emojis', async (req, res, next) => {
                 error: 'Invalid studyId',
             });
 
-        const where = { studyId };
+        const studyExists = await prisma.study.findUnique({
+            where: { id: studyId },
+            select: { id: true },
+        });
+        if (!studyExists)
+            return res.status(404).json({
+                error: 'Study not found',
+            });
 
-        // 상위 3개만, 나머지는 개수만
-        const [totalTypes, topRows] = await Promise.all([
-            prisma.studyEmoji.count({ where }),
-            prisma.studyEmoji.findMany({
-                where,
-                include: { emoji: true },
-                orderBy: [{ count: 'desc' }, { emojiId: 'asc' }],
-                take: 3,
-            }),
-        ]);
+        const rows = await prisma.studyEmoji.findMany({
+            where: { studyId },
+            include: { emoji: true },
+            orderBy: [{ count: 'desc' }, { emojiId: 'asc' }],
+        });
 
-        const top = topRows.map((r) => ({
+        const items = rows.map((r) => ({
             emojiId: r.emojiId,
             emoji: r.emoji?.emoji ?? '',
             count: r.count,
         }));
-        const othersCount = Math.max(0, totalTypes - top.length);
-
-        return res.json({
-            top,
-            others: {
-                count: othersCount,
-            },
-        });
+        return res.json({ items });
     } catch (err) {
         next(err);
     }
