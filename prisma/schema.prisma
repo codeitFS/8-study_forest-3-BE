@@ -8,13 +8,13 @@ datasource db {
 }
 
 model Study {
-    id          BigInt      @id @default(autoincrement()) @map("study_id")
+    id          Int      @id @default(autoincrement()) @map("study_id")
     nickname    String
     name        String
     description String?
     background  String
     password    String
-    points      BigInt      @default(0)
+    points      Int      @default(0)
     createdAt   DateTime @default(now()) @map("created_at")
     updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -28,8 +28,8 @@ model Study {
 }
 
 model Habit {
-    id          BigInt       @id @default(autoincrement()) @map("habit_id")
-    studyId     BigInt       @map("study_id")
+    id          Int       @id @default(autoincrement()) @map("habit_id")
+    studyId     Int       @map("study_id")
     name        String
     weeklyClear String    @default("0|0|0|0|0|0|0")   @map("weekly_clear")
     createdAt   DateTime  @default(now()) @map("created_at")
@@ -44,9 +44,9 @@ model Habit {
 }
 
 model HabitRecord {
-    id        BigInt      @id @default(autoincrement()) @map("record_id")
-    studyId   BigInt      @unique @map("study_id") 
-    habitId   BigInt      @map("habit_id")
+    id        Int      @id @default(autoincrement()) @map("record_id")
+    studyId   Int      @unique @map("study_id") 
+    habitId   Int      @map("habit_id")
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -60,9 +60,9 @@ model HabitRecord {
 }
 
 model FocusSession {
-    id        BigInt      @id @default(autoincrement()) @map("focus_id")
-    studyId   BigInt      @unique @map("study_id")
-    duration  BigInt      @default(0)
+    id        Int      @id @default(autoincrement()) @map("focus_id")
+    studyId   Int      @unique @map("study_id")
+    duration  Int      @default(0)
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -73,7 +73,7 @@ model FocusSession {
 }
 
 model Emoji {
-    id        BigInt      @id @default(autoincrement()) @map("emoji_id")
+    id        Int      @id @default(autoincrement()) @map("emoji_id")
     emoji     String
     createdAt DateTime @default(now()) @map("created_at")
 
@@ -83,10 +83,10 @@ model Emoji {
 }
 
 model StudyEmoji {
-    id        BigInt      @id @default(autoincrement()) @map("study_emoji_id")
-    studyId   BigInt      @map("study_id")
-    emojiId   BigInt      @map("emoji_id")
-    count     BigInt      @default(0)
+    id        Int      @id @default(autoincrement()) @map("study_emoji_id")
+    studyId   Int      @map("study_id")
+    emojiId   Int      @map("emoji_id")
+    count     Int      @default(0)
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
