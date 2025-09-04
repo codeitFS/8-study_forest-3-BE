@@ -105,28 +105,128 @@ router.get('/emojis', async (req, res, next) => {
 router.get('/emojis/:id', async (req, res, next) => {
     try {
         const id = parseId(req.params.id);
-        if (!id) return res.status(400).json({ error: 'Invalid id' });
-        const item = await prisma.emoji.findUnique({ where: { id } });
-        if (!item) return res.status(404).json({ error: 'Emoji not found' });
+        if (!id)
+            return res.status(400).json({
+                error: 'Invalid id',
+            });
+        const item = await prisma.emoji.findUnique({
+            where: { id },
+        });
+        if (!item)
+            return res.status(404).json({
+                error: 'Emoji not found',
+            });
         return res.json(item);
     } catch (err) {
         next(err);
     }
 });
 
-
 // DELETE /emojis/:id - 삭제
-router.delete('/emojis/:id', async (req, res, next) => {
+// 외부 api에서 이모티콘을 받아오기 때문에 삭제가 필요없다고 판단
+// router.delete('/emojis/:id', async (req, res, next) => {
+//     try {
+//         const id = parseId(req.params.id);
+//         if (!id)
+//             return res.status(400).json({
+//                 error: 'Invalid id',
+//             });
+//         await prisma.emoji.delete({
+//             where: { id },
+//         });
+//         return res.status(204).send();
+//     } catch (err) {
+//         next(err);
+//     }
+// });
+
+// POST /studies/:studyId/emojis/:emojiId
+// study-emoji count를 +1(이모티콘이 있을 때 이모티콘 창에서 이모티콘를 눌러도 +1이 되도록)
+router.post('/studies/:studyId/emojis/:emojiId', async (req, res, next) => {
     try {
-        const id = parseId(req.params.id);
-        if (!id)
+        const studyId = parseId(req.params.studyId);
+        const emojiId = parseId(req.params.emojiId);
+        if (!studyId || !emojiId) {
             return res.status(400).json({
-                error: 'Invalid id',
+                error: 'Invalid studyId or emojiId',
             });
-        await prisma.emoji.delete({
-            where: { id },
+        }
+
+        // study/emoji 존재 확인
+        const studyExists = await prisma.study.findUnique({
+            where: { id: studyId },
+            select: { id: true },
         });
-        return res.status(204).send();
+        if (!studyExists) {
+            return res.status(404).json({ error: 'Study not found' });
+        }
+
+        const emojiExists = await prisma.emoji.findUnique({
+            where: { id: emojiId },
+            select: { id: true, emoji: true },
+        });
+        if (!emojiExists)
+            return res.status(404).json({
+                error: 'Emoji not found',
+            });
+
+        // unique 키(studyId, emojiId)로 레코드가 없으면 생성(count = 1)
+        // 있으면 count += 1
+        const updated = await prisma.studyEmoji.upsert({
+            where: { studyId_emojiId: { studyId, emojiId } },
+            update: { count: { increment: 1 } },
+            create: { studyId, emojiId, count: 1 },
+        });
+
+        return res.status(200).json({
+            studyId: updated.studyId,
+            emojiId: updated.emojiId,
+            emoji: emojiExists.emoji,
+            count: updated.count,
+        });
+    } catch (err) {
+        if (err?.code === 'P2003') {
+            return res.status(404).json({ error: 'Study or Emoji not found' });
+        }
+        next(err);
+    }
+});
+
+// GET /studies/:studyId/emojis - 스터디의 이모지 카운트 목록을 조회한다.
+router.get('/studies/:studyId/emojis', async (req, res, next) => {
+    try {
+        const studyId = parseId(req.params.studyId);
+        if (!studyId)
+            return res.status(400).json({
+                error: 'Invalid studyId',
+            });
+
+        const where = { studyId };
+
+        // 상위 3개만, 나머지는 개수만
+        const [totalTypes, topRows] = await Promise.all([
+            prisma.studyEmoji.count({ where }),
+            prisma.studyEmoji.findMany({
+                where,
+                include: { emoji: true },
+                orderBy: [{ count: 'desc' }, { emojiId: 'asc' }],
+                take: 3,
+            }),
+        ]);
+
+        const top = topRows.map((r) => ({
+            emojiId: r.emojiId,
+            emoji: r.emoji?.emoji ?? '',
+            count: r.count,
+        }));
+        const othersCount = Math.max(0, totalTypes - top.length);
+
+        return res.json({
+            top,
+            others: {
+                count: othersCount,
+            },
+        });
     } catch (err) {
         next(err);
     }
