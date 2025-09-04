@@ -79,7 +79,7 @@ router.get('/studies/:studyId/habits', async (req, res, next) => {
 
         const items = await prisma.habit.findMany({
             where,
-            orderBy: { id: 'desc' },
+            orderBy: { id: 'asc' },
             skip: (page - 1) * pageSize,
             take: pageSize,
         });
