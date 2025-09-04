@@ -23,6 +23,10 @@ app.use(morgan(LOG_LEVEL));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// JSON stringify 시 BigInt 직렬화 처리 (Prisma BigInt 대응)
+// 모든 res.json 응답에서 bigint 값을 문자열로 변환하여 TypeError 방지
+app.set('json replacer', (_key, value) => (typeof value === 'bigint' ? value.toString() : value));
+
 // 기본 라우트 (루트 및 헬스체크)
 app.get('/', (req, res) => {
     res.json({ ok: true, message: 'Express skeleton' });
