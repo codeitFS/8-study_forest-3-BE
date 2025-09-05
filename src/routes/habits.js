@@ -125,7 +125,10 @@ router.get('/studies/:studyId/habits/:id', async (req, res, next) => {
 router.patch('/studies/:studyId/habits/:id', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
-        if (!studyId) return res.status(400).json({ error: 'Invalid studyId' });
+        if (!studyId)
+            return res.status(400).json({
+                error: 'Invalid studyId',
+            });
         const id = parseId(req.params.id);
         if (!id)
             return res.status(400).json({
