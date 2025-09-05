@@ -1,5 +1,5 @@
--- DropTable
-DROP TABLE "public"."STUDY";
+-- DropTable (guarded)
+DROP TABLE IF EXISTS "public"."STUDY";
 
 -- CreateTable
 CREATE TABLE "public"."studies" (

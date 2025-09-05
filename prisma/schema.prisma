@@ -73,8 +73,8 @@ model FocusSession {
 }
 
 model Emoji {
-    id        Int      @id @default(autoincrement()) @map("emoji_id")
-    emoji     String
+    id        String   @id @map("emoji_id") // unified 값을 그대로 저장
+    emoji     String    // 실제 이모지 문자
     createdAt DateTime @default(now()) @map("created_at")
 
     studyEmojis StudyEmoji[] // 1:N
@@ -85,7 +85,7 @@ model Emoji {
 model StudyEmoji {
     id        Int      @id @default(autoincrement()) @map("study_emoji_id")
     studyId   Int      @map("study_id")
-    emojiId   Int      @map("emoji_id")
+    emojiId   String   @map("emoji_id")
     count     Int      @default(0)
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
