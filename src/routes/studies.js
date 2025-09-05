@@ -158,6 +158,31 @@ router.patch('/studies/:id', async (req, res, next) => {
     }
 });
 
+// PATCH /studies/:id/points - points 증가 전용(비밀번호 필요 X)
+router.patch('/studies/:id/points', async (req, res, next) => {
+    try {
+        const id = parseId(req.params.id);
+        if (!id)
+            return res.status(400).json({
+                error: 'Invalid id',
+            });
+
+        const { increment } = req.body || {};
+        const inc = Number(increment);
+        if (!Number.isInteger(inc) || inc < 0)
+            return res.status(400).json({
+                error: 'increment must be a positive integer',
+            });
+        const updated = await prisma.study.update({
+            where: { id },
+            data: { points: { increment: inc } },
+        });
+        return res.json(sanitizeStudy(updated));
+    } catch (err) {
+        next(err);
+    }
+});
+
 // DELETE /studies/:id - 삭제 (비밀번호 필요)
 router.delete('/studies/:id', async (req, res, next) => {
     try {
