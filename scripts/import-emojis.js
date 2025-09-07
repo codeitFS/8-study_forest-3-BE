@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { prisma } from '../src/lib/prisma.js';
+import { prisma } from '../src/repositories/prismaClient.js';
 
 function toEmojiFromUnified(unified) {
     if (!unified || typeof unified !== 'string') return '';
