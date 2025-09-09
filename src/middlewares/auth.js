@@ -15,6 +15,6 @@ export function requireAuth(req, res, next) {
     if (!ok) {
         return res.status(401).json({ error: 'Invalid or expired token' });
     }
-    req.user = payload; // e.g., { studyId, iat, exp }
+    req.user = payload; // { studyId, iat, exp }
     return next();
 }
