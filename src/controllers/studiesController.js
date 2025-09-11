@@ -54,6 +54,16 @@ export async function list(req, res, next) {
     }
 }
 
+export async function listAll(req, res, next) {
+    try {
+        const search = (req.query.search || '').toString().trim();
+        const items = await studiesService.listAllStudies({ search });
+        res.json(items.map(sanitizeStudy));
+    } catch (err) {
+        next(err);
+    }
+}
+
 export async function getById(req, res, next) {
     try {
         const id = parseId(req.params.id);

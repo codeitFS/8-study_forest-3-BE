@@ -39,6 +39,22 @@ export async function listStudies({ page, pageSize, search }) {
     return { total, items };
 }
 
+export async function listAllStudies({ search }) {
+    const where = search
+        ? {
+              OR: [
+                  { name: { contains: search, mode: 'insensitive' } },
+                  { nickname: { contains: search, mode: 'insensitive' } },
+              ],
+          }
+        : undefined;
+    return prisma.study.findMany({
+        where,
+        orderBy: { id: 'desc' },
+        include: includeStudyEmojis,
+    });
+}
+
 export function getStudy(id) {
     return prisma.study.findUnique({ where: { id }, include: includeStudyEmojis });
 }
