@@ -1,10 +1,19 @@
 import { prisma } from '../repositories/prismaClient.js';
 import { toHashedPasswordIfNeeded } from '../utils/index.js';
 
+// study와 관련된 emoji들을 불러오도록 하는 모듈
+const includeStudyEmojis = {
+    studyEmojis: {
+        include: { emoji: true },
+        orderBy: [{ count: 'desc' }, { emojiId: 'asc' }],
+    },
+};
+
 export async function createStudy({ nickname, name, description, background, password }) {
     const hashed = await toHashedPasswordIfNeeded(password);
     return prisma.study.create({
         data: { nickname, name, description, background, password: hashed },
+        include: includeStudyEmojis,
     });
 }
 
@@ -24,13 +33,14 @@ export async function listStudies({ page, pageSize, search }) {
             orderBy: { id: 'desc' },
             skip: (page - 1) * pageSize,
             take: pageSize,
+            include: includeStudyEmojis,
         }),
     ]);
     return { total, items };
 }
 
 export function getStudy(id) {
-    return prisma.study.findUnique({ where: { id } });
+    return prisma.study.findUnique({ where: { id }, include: includeStudyEmojis });
 }
 
 export async function updateStudy(id, { nickname, name, description, background, newPassword }) {
@@ -43,6 +53,7 @@ export async function updateStudy(id, { nickname, name, description, background,
     return prisma.study.update({
         where: { id },
         data,
+        include: includeStudyEmojis,
     });
 }
 
@@ -50,6 +61,7 @@ export function incrementPoints(id, inc) {
     return prisma.study.update({
         where: { id },
         data: { points: { increment: inc } },
+        include: includeStudyEmojis,
     });
 }
 

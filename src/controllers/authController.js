@@ -1,5 +1,5 @@
 import { parseId, verifyStudyPassword } from '../utils/index.js';
-import { signAccessToken } from '../services/auth/tokenService.js';
+import { signAccessToken } from '../services/tokenService.js';
 import { JWT_ACCESS_EXPIRES_IN } from '../config/auth.js';
 
 // POST /auth - id/pw를 이용해 엑세스 토큰 생성

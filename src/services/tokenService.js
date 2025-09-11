@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { JWT_ACCESS_SECRET, JWT_ACCESS_EXPIRES_IN } from '../../config/auth.js';
+import { JWT_ACCESS_SECRET, JWT_ACCESS_EXPIRES_IN } from '../config/auth.js';
 
 // Access token 발급
 export function signAccessToken(payload, options = {}) {

@@ -1,10 +1,15 @@
 import * as studiesService from '../services/studiesService.js';
 import { parseId } from '../utils/index.js';
 
+function toEmojiArray(study) {
+    const rows = study?.studyEmojis || [];
+    return rows.map((r) => ({ emojiId: r.emojiId, emoji: r.emoji?.emoji ?? '', count: r.count }));
+}
+
 function sanitizeStudy(study) {
     if (!study) return study;
-    const { password, ...rest } = study;
-    return rest;
+    const { password, studyEmojis, ...rest } = study;
+    return { ...rest, emojis: toEmojiArray(study) };
 }
 
 export async function create(req, res, next) {
