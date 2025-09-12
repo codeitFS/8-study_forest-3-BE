@@ -1,7 +1,8 @@
 import { prisma } from '../repositories/prismaClient.js';
 import { toHashedPasswordIfNeeded } from '../utils/index.js';
 
-// study와 관련된 emoji들을 불러오도록 하는 모듈
+// Prisma include 설정: study 조회 시 연관된 StudyEmoji (이모지별 카운트) 로드
+// orderBy: count 내림차순 -> 동일 count 시 emojiId 오름차순
 const includeStudyEmojis = {
     studyEmojis: {
         include: { emoji: true },
@@ -9,6 +10,7 @@ const includeStudyEmojis = {
     },
 };
 
+// 스터디 생성 - password 는 필요 시 해싱 처리
 export async function createStudy({ nickname, name, description, background, password }) {
     const hashed = await toHashedPasswordIfNeeded(password);
     return prisma.study.create({
@@ -17,6 +19,7 @@ export async function createStudy({ nickname, name, description, background, pas
     });
 }
 
+// 페이지네이션 + 검색 (name, nickname 부분 일치 - 대소문자 무시)
 export async function listStudies({ page, pageSize, search }) {
     const where = search
         ? {
@@ -39,6 +42,7 @@ export async function listStudies({ page, pageSize, search }) {
     return { total, items };
 }
 
+// 전체 조회 (주의: 데이터 커지면 비효율 -> 향후 제한/캐시 고려)
 export async function listAllStudies({ search }) {
     const where = search
         ? {
@@ -55,10 +59,12 @@ export async function listAllStudies({ search }) {
     });
 }
 
+// 단건 조회
 export function getStudy(id) {
     return prisma.study.findUnique({ where: { id }, include: includeStudyEmojis });
 }
 
+// 업데이트 (선택적 필드만 적용, newPassword 존재 시 재해싱)
 export async function updateStudy(id, { nickname, name, description, background, newPassword }) {
     const data = {};
     if (nickname !== undefined) data.nickname = nickname;
@@ -73,6 +79,7 @@ export async function updateStudy(id, { nickname, name, description, background,
     });
 }
 
+// 포인트 증가 (경합 상황에서 atomic increment)
 export function incrementPoints(id, inc) {
     return prisma.study.update({
         where: { id },
@@ -81,6 +88,7 @@ export function incrementPoints(id, inc) {
     });
 }
 
+// 삭제 (연관 관계 onDelete Cascade 설정으로 관련 레코드 정리)
 export function deleteStudy(id) {
     return prisma.study.delete({
         where: { id },

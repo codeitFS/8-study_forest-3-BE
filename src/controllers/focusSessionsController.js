@@ -1,6 +1,7 @@
 import * as focusService from '../services/focusSessionsService.js';
 import { parseId } from '../utils/index.js';
 
+// POST /studies/:studyId/focus_session - 집중 세션 생성 (1:1 관계 가정)
 export async function create(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -37,6 +38,7 @@ export async function create(req, res, next) {
     }
 }
 
+// GET /studies/:studyId/focus_session - 조회
 export async function get(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -55,6 +57,7 @@ export async function get(req, res, next) {
     }
 }
 
+// PATCH /studies/:studyId/focus_session - duration 수정
 export async function update(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -90,6 +93,7 @@ export async function update(req, res, next) {
     }
 }
 
+// DELETE /studies/:studyId/focus_session - 삭제
 export async function remove(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);

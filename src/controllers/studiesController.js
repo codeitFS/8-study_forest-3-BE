@@ -1,17 +1,20 @@
 import * as studiesService from '../services/studiesService.js';
 import { parseId } from '../utils/index.js';
 
+// studyEmojis 관계 데이터 -> 클라이언트 응답용 단순 배열 변환
 function toEmojiArray(study) {
     const rows = study?.studyEmojis || [];
     return rows.map((r) => ({ emojiId: r.emojiId, emoji: r.emoji?.emoji ?? '', count: r.count }));
 }
 
+// 클라이언트에 민감 정보(password) 제거 + emoji 배열 필드 추가
 function sanitizeStudy(study) {
     if (!study) return study;
     const { password, studyEmojis, ...rest } = study;
     return { ...rest, emojis: toEmojiArray(study) };
 }
 
+// POST /studies - 새 스터디 생성
 export async function create(req, res, next) {
     try {
         const { nickname, name, description, background, password } = req.body;
@@ -39,6 +42,7 @@ export async function create(req, res, next) {
     }
 }
 
+// GET /studies - 페이지네이션 목록 (메타데이터 포함)
 export async function list(req, res, next) {
     try {
         const page = Math.max(1, Number(req.query.page) || 1);
@@ -54,6 +58,7 @@ export async function list(req, res, next) {
     }
 }
 
+// GET /studiesAll - 전체 목록 (페이징 없음, 주의: 데이터 많아지면 비활성 고려)
 export async function listAll(req, res, next) {
     try {
         const search = (req.query.search || '').toString().trim();
@@ -64,6 +69,7 @@ export async function listAll(req, res, next) {
     }
 }
 
+// GET /studies/:id - 단건 조회
 export async function getById(req, res, next) {
     try {
         const id = parseId(req.params.id);
@@ -82,6 +88,7 @@ export async function getById(req, res, next) {
     }
 }
 
+// PATCH /studies/:id - 스터디 정보 업데이트 (JWT studyId 일치 확인)
 export async function update(req, res, next) {
     try {
         const id = parseId(req.params.id);
@@ -122,6 +129,7 @@ export async function update(req, res, next) {
     }
 }
 
+// PATCH /studies/:id/points - 포인트 증가 (인증 미들웨어 없이 사용 가능: 필요 시 보호 고려)
 export async function incrementPoints(req, res, next) {
     try {
         const id = parseId(req.params.id);
@@ -141,6 +149,7 @@ export async function incrementPoints(req, res, next) {
     }
 }
 
+// DELETE /studies/:id - 스터디 삭제 (JWT studyId 일치 확인)
 export async function remove(req, res, next) {
     try {
         const id = parseId(req.params.id);
