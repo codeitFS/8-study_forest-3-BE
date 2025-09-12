@@ -1,5 +1,6 @@
 import { prisma } from '../repositories/prismaClient.js';
 
+// 습관 생성
 export function createHabit(studyId, { name, weeklyClear }) {
     return prisma.habit.create({
         data: {
@@ -10,6 +11,7 @@ export function createHabit(studyId, { name, weeklyClear }) {
     });
 }
 
+// 습관 목록 (검색 + 페이지네이션)
 export function listHabits(studyId, { page, pageSize, search }) {
     const where = {
         studyId,
@@ -23,14 +25,17 @@ export function listHabits(studyId, { page, pageSize, search }) {
     });
 }
 
+// 단건 조회
 export function getHabit(id) {
     return prisma.habit.findUnique({ where: { id } });
 }
 
+// 업데이트
 export function updateHabit(id, data) {
     return prisma.habit.update({ where: { id }, data });
 }
 
+// 삭제
 export function deleteHabit(id) {
     return prisma.habit.delete({ where: { id } });
 }

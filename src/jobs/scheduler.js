@@ -2,6 +2,11 @@ import cron from 'node-cron';
 import { prisma } from '../repositories/prismaClient.js';
 import { CRON_TZ } from '../config/index.js';
 
+// node-cron 기반 주기 작업 스케줄러
+// 현재 작업:
+// 1) dev heartbeat: 개발 환경에서 주기 로그로 프로세스 생존 확인
+// 2) 주간 습관 초기화: 매주 월요일 00:00 에 habits.weeklyClear 리셋
+
 const g = globalThis;
 g.__jobs = g.__jobs || [];
 
@@ -15,7 +20,7 @@ function scheduleDevHeartbeat() {
     if (process.env.NODE_ENV === 'production') return null;
     return register(
         cron.schedule(
-            '*/14 * * * *',
+            '*/14 * * * *', // 14분 간격 (무료 호스팅 슬립 방지 목적 추정)
             () => {
                 // eslint-disable-next-line no-console
                 console.log('[cron] dev heartbeat:', new Date().toISOString());
@@ -30,7 +35,7 @@ function scheduleWeeklyHabitReset() {
     const DEFAULT_WEEKLY = '0|0|0|0|0|0|0';
     return register(
         cron.schedule(
-            '0 0 * * 1',
+            '0 0 * * 1', // 매주 월요일 00:00
             async () => {
                 try {
                     const result = await prisma.habit.updateMany({

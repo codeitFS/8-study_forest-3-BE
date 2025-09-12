@@ -1,11 +1,13 @@
 import * as habitsService from '../services/habitsService.js';
 import { parseId } from '../utils/index.js';
 
+// weeklyClear 포맷: '0|0|0|0|0|0|0' (총 7일 여부 표시)
 function isValidWeeklyClear(value) {
     if (typeof value !== 'string') return false;
     return /^(0|1)(\|(0|1)){6}$/.test(value);
 }
 
+// POST /studies/:studyId/habits - 습관 생성
 export async function create(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -40,6 +42,7 @@ export async function create(req, res, next) {
     }
 }
 
+// GET /studies/:studyId/habits - 페이지네이션 목록
 export async function list(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -57,6 +60,7 @@ export async function list(req, res, next) {
     }
 }
 
+// GET /studies/:studyId/habits/:id - 단건 조회
 export async function getById(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -80,6 +84,7 @@ export async function getById(req, res, next) {
     }
 }
 
+// PATCH /studies/:studyId/habits/:id - 습관 정보 수정
 export async function update(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);
@@ -129,6 +134,7 @@ export async function update(req, res, next) {
     }
 }
 
+// DELETE /studies/:studyId/habits/:id - 삭제
 export async function remove(req, res, next) {
     try {
         const studyId = parseId(req.params.studyId);

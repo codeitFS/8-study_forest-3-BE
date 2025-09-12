@@ -2,7 +2,10 @@ import { parseId, verifyStudyPassword } from '../utils/index.js';
 import { signAccessToken } from '../services/tokenService.js';
 import { JWT_ACCESS_EXPIRES_IN } from '../config/auth.js';
 
-// POST /auth - id/pw를 이용해 엑세스 토큰 생성
+// POST /auth
+// 1. studyId + password 검증 (형식 및 존재)
+// 2. 비밀번호 검증 util 사용 (해시 비교 포함)
+// 3. Access Token 발급 후 만료 정보와 함께 반환
 export async function issueAccessToken(req, res) {
     const studyId = parseId(req.body?.studyId);
     const password = req.body?.password;

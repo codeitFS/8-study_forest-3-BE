@@ -7,6 +7,7 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// Study: 사용자/스터디 엔티티 (비밀번호 기반 단순 인증, points 및 배경/닉네임 보유)
 model Study {
     id          Int      @id @default(autoincrement()) @map("study_id")
     nickname    String
@@ -27,6 +28,7 @@ model Study {
     @@map("studies")
 }
 
+// Habit: 스터디별 습관 (weeklyClear: 요일별 달성 여부 7자리 비트 문자열)
 model Habit {
     id          Int       @id @default(autoincrement()) @map("habit_id")
     studyId     Int       @map("study_id")
@@ -43,6 +45,7 @@ model Habit {
     @@map("habits")
 }
 
+// HabitRecord: Habit 에 대한 추가 기록 (studyId unique -> 1:1, 예비 확장 자리)
 model HabitRecord {
     id        Int      @id @default(autoincrement()) @map("record_id")
     studyId   Int      @unique @map("study_id") 
@@ -59,6 +62,7 @@ model HabitRecord {
     @@map("habit_records")
 }
 
+// FocusSession: 스터디별 집중 시간 기록 (1:1)
 model FocusSession {
     id        Int      @id @default(autoincrement()) @map("focus_id")
     studyId   Int      @unique @map("study_id")
@@ -72,6 +76,7 @@ model FocusSession {
     @@map("focus_sessions")
 }
 
+// Emoji: 외부 소스에서 가져온 이모지 (unified 값을 id 로 사용)
 model Emoji {
     id        String   @id @map("emoji_id") // unified 값을 그대로 저장
     emoji     String    // 실제 이모지 문자
@@ -82,6 +87,7 @@ model Emoji {
     @@map("emojis")
 }
 
+// StudyEmoji: 스터디-이모지 매핑 및 사용 count 집계 (복합 unique)
 model StudyEmoji {
     id        Int      @id @default(autoincrement()) @map("study_emoji_id")
     studyId   Int      @map("study_id")

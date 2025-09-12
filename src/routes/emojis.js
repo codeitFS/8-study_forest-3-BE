@@ -2,9 +2,11 @@ import express from 'express';
 import { prisma } from '../repositories/prismaClient.js';
 import { parseId } from '../utils/index.js';
 
+// Emojis & StudyEmoji 관련 라우트
+
 const router = express.Router();
 
-// GET /emojis - 목록 조회
+// GET /emojis - 이모지 목록 조회 (간단 검색 + 페이지네이션)
 router.get('/emojis', async (req, res, next) => {
     try {
         const page = Math.max(1, Number(req.query.page) || 1);
@@ -43,7 +45,7 @@ router.get('/emojis', async (req, res, next) => {
     }
 });
 
-// GET /emojis/:id - 상세 조회
+// GET /emojis/:id - 단일 이모지 조회
 router.get('/emojis/:id', async (req, res, next) => {
     try {
         const id = (req.params.id || '').trim();
@@ -134,7 +136,7 @@ router.post('/studies/:studyId', async (req, res, next) => {
     }
 });
 
-// GET /studies/:studyId/emojis - 스터디의 이모지 카운트 전체 목록 조회
+// GET /studies/:studyId/emojis - 특정 스터디에서 사용된 이모지 카운트 목록
 router.get('/studies/:studyId/emojis', async (req, res, next) => {
     try {
         const studyId = parseId(req.params.studyId);
